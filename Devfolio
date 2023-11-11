@@ -1,0 +1,36 @@
+
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract DeadMansSwitch {
+    address public owner;
+    address public presetAddress;
+    uint256 public lastInteractionBlock;
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Not the owner");
+        _;
+    }
+
+    modifier checkInactivity() {
+        require(block.number - lastInteractionBlock <= 10, "Trigger condition met");
+        _;
+    }
+
+    constructor(address _presetAddress) {
+        owner = msg.sender;
+        presetAddress = _presetAddress;
+        lastInteractionBlock = block.number;
+    }
+
+    function still_alive() external onlyOwner {
+        lastInteractionBlock = block.number;
+    }
+
+    function checkSwitch() external checkInactivity onlyOwner {
+        // Perform actions when trigger condition is met
+        // For example, transfer all balance to the preset address
+        payable(presetAddress).transfer(address(this).balance);
+    }
+}
